@@ -3,103 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIM 2026 - Pro Manager</title>
+    <title>BIM 2026 - Ultimate Manager</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
         :root { 
             --primary: #007bff; --dark: #121212; --light: #1e1e1e; 
             --accent: #333; --danger: #ef4444; --success: #22c55e; 
         }
-        body { font-family: 'Inter', system-ui, sans-serif; background: var(--dark); color: #e5e7eb; margin: 0; display: flex; height: 100vh; }
+        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--dark); color: #e5e7eb; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
-        /* Sidebar Refinement */
-        .sidebar { width: 280px; background: var(--light); border-right: 1px solid var(--accent); display: flex; flex-direction: column; }
+        /* Sidebar */
+        .sidebar { width: 280px; background: var(--light); border-right: 1px solid var(--accent); display: flex; flex-direction: column; flex-shrink: 0; }
         .auth-box { padding: 20px; border-bottom: 1px solid var(--accent); }
-        .auth-input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--accent); background: #000; color: white; }
+        .auth-input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--accent); background: #000; color: white; box-sizing: border-box; }
         
         .team-section { flex: 1; padding: 15px; overflow-y: auto; }
         .team-item { 
             padding: 12px; background: #2a2a2a; margin-bottom: 8px; border-radius: 8px; 
-            cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center;
+            border-left: 4px solid transparent;
         }
-        .team-item:hover { background: #383838; transform: translateY(-1px); }
-        .active-room { border-left: 4px solid var(--primary); background: #383838; }
+        .team-item:hover { background: #383838; }
+        .active-room { border-left-color: var(--primary); background: #383838; }
+        .add-member-btn { background: var(--primary); border: none; color: white; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 16px; }
 
-        /* Main Content & Video Grid */
-        .main { flex: 1; display: flex; flex-direction: column; }
-        #video-section { 
-            background: #000; display: flex; justify-content: center; align-items: center;
-            transition: height 0.3s ease; height: 0; overflow: hidden;
-        }
-        #video-section.active { height: 300px; border-bottom: 2px solid var(--accent); }
+        /* Main Content */
+        .main { flex: 1; display: flex; flex-direction: column; position: relative; }
         
-        #video-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; width: 100%; max-width: 1000px; padding: 10px; }
-        video { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; background: #111; }
+        /* Video Section */
+        #video-section { 
+            background: #000; display: none; flex-direction: column; align-items: center;
+            padding: 10px; border-bottom: 2px solid var(--accent);
+        }
+        #video-section.active { display: flex; }
+        #video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 800px; }
+        video { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 10px; background: #111; }
         .mirror { transform: scaleX(-1); }
 
-        /* Chat Styling */
+        /* Chat */
         #chat-section { flex: 1; display: flex; flex-direction: column; background: #151515; }
-        #chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
-        .msg { padding: 10px 16px; border-radius: 18px; max-width: 75%; line-height: 1.4; }
+        #chat-header { padding: 15px 20px; background: #1a1a1a; border-bottom: 1px solid var(--accent); font-weight: bold; }
+        #chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 10px 15px; border-radius: 15px; max-width: 70%; font-size: 14px; line-height: 1.4; }
         .sent { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
         .received { background: var(--accent); align-self: flex-start; border-bottom-left-radius: 2px; }
-        
-        .input-area { padding: 20px; background: var(--light); display: flex; gap: 12px; align-items: center; }
-        input[type="text"] { flex: 1; padding: 12px 20px; border-radius: 25px; border: 1px solid var(--accent); background: #0a0a0a; color: white; }
-        
-        .btn-round { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.2s; }
-        .btn-primary { background: var(--primary); color: white; }
+        .user-label { font-size: 10px; opacity: 0.6; display: block; margin-bottom: 4px; }
+
+        .input-area { padding: 15px; background: var(--light); display: flex; gap: 10px; }
+        input[type="text"] { flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid var(--accent); background: #0a0a0a; color: white; outline: none; }
+        .btn-action { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
     </style>
 </head>
 <body>
 
-    <aside class="sidebar">
+    <div class="sidebar">
         <div class="auth-box" id="login-ui">
-            <h2 style="margin: 0 0 15px 0; color: var(--primary);">BIM 2026</h2>
+            <h3 style="margin: 0 0 15px 0;">BIM 2026</h3>
             <input type="email" id="email" class="auth-input" placeholder="E-Mail">
             <input type="password" id="password" class="auth-input" placeholder="Passwort">
-            <button onclick="handleAuth()" class="btn-round" style="width:100%; border-radius:8px; background:var(--success); color:white; font-weight:bold;">Login / Register</button>
+            <button onclick="handleAuth()" style="width:100%; padding:10px; background:var(--success); border:none; color:white; border-radius:5px; cursor:pointer;">Anmelden / Registrieren</button>
         </div>
 
         <div class="auth-box" id="user-ui" style="display:none;">
-            <div id="display-email" style="font-weight:bold; font-size:14px;"></div>
-            <div style="font-size:12px; color:#aaa; margin-bottom:10px;">ID: <span id="display-id" style="color:var(--success);"></span></div>
-            <button onclick="handleLogout()" style="background:none; border:1px solid var(--danger); color:var(--danger); width:100%; padding:5px; border-radius:4px; cursor:pointer;">Logout</button>
+            <div id="display-email" style="font-size: 13px; font-weight: bold; color: var(--primary);"></div>
+            <div style="font-size: 11px; margin-top: 5px;">Team-ID: <strong id="display-id" style="color:var(--success);"></strong></div>
+            <button onclick="handleLogout()" style="margin-top:10px; width:100%; background:transparent; border:1px solid var(--danger); color:var(--danger); padding:4px; border-radius:4px; cursor:pointer; font-size:11px;">Abmelden</button>
         </div>
 
         <div class="team-section">
-            <div style="display:flex; justify-content:space-between; margin-bottom:15px;">
-                <small style="color:#666; font-weight:bold;">TEAMS</small>
-                <button onclick="createNewTeam()" style="background:var(--primary); border:none; color:white; border-radius:4px; padding:0 8px; cursor:pointer;">+</button>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+                <span style="font-size:11px; color:#777; letter-spacing:1px;">TEAMS</span>
+                <button onclick="createNewTeam()" style="background:var(--primary); border:none; color:white; border-radius:4px; padding:2px 8px; cursor:pointer;">+</button>
             </div>
             <div id="team-list-container"></div>
         </div>
-    </aside>
+    </div>
 
-    <main class="main">
+    <div class="main">
         <div id="video-section">
             <div id="video-grid">
                 <video id="localVideo" class="mirror" autoplay playsinline muted></video>
                 <video id="remoteVideo" autoplay playsinline></video>
             </div>
+            <button onclick="location.reload()" style="margin-top:10px; background:var(--danger); border:none; color:white; padding:5px 15px; border-radius:20px; cursor:pointer;">Auflegen</button>
         </div>
 
         <div id="chat-section">
+            <div id="chat-header">Raum: <span id="current-room-name">Hauptraum</span></div>
             <div id="chat-messages"></div>
             <div class="input-area">
-                <button class="btn-round btn-primary" onclick="makeCall()">📞</button>
-                <input type="text" id="msgInput" placeholder="Nachricht an Team senden...">
-                <button class="btn-round btn-primary" onclick="sendMsg()">➤</button>
+                <button class="btn-action" style="background:var(--success)" onclick="makeCall()">📞</button>
+                <input type="text" id="msgInput" placeholder="Nachricht schreiben...">
+                <button class="btn-action" style="background:var(--primary)" onclick="sendMsg()">➤</button>
             </div>
         </div>
-    </main>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // Konfiguration (Behalte deine bei)
         const firebaseConfig = {
             apiKey: "AIzaSyB9Mw9ljgqeJztFtBEM2H7-c6k7XGy8zAw",
             authDomain: "projektmangerbim2026.firebaseapp.com",
@@ -112,18 +116,18 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+
         let peer, localStream, activeRoom = "Hauptraum", unsubChat;
 
-        // --- AUTH LOGIC ---
+        // --- AUTH ---
         window.handleAuth = async () => {
             const email = document.getElementById('email').value;
             const pass = document.getElementById('password').value;
+            if(!email || !pass) return alert("Bitte Daten ausfüllen");
             try {
                 await signInWithEmailAndPassword(auth, email, pass);
-            } catch (err) {
-                if (err.code === 'auth/user-not-found' || err.code === 'auth/invalid-credential') {
-                    await createUserWithEmailAndPassword(auth, email, pass).catch(e => alert(e.message));
-                } else { alert(err.message); }
+            } catch (e) {
+                await createUserWithEmailAndPassword(auth, email, pass).catch(err => alert(err.message));
             }
         };
 
@@ -134,78 +138,89 @@
                 document.getElementById('login-ui').style.display = 'none';
                 document.getElementById('user-ui').style.display = 'block';
                 document.getElementById('display-email').innerText = user.email;
-                const shortId = user.uid.substring(0, 5);
-                document.getElementById('display-id').innerText = shortId;
+                const myShortId = user.uid.substring(0, 5);
+                document.getElementById('display-id').innerText = myShortId;
                 
-                initPeer(shortId);
-                loadTeams(shortId);
+                initPeer(myShortId);
+                loadTeams(myShortId);
                 switchRoom('Hauptraum');
             }
         });
 
-        // --- VIDEO CORE ---
-        async function startMedia() {
-            if (localStream) return localStream;
-            try {
-                localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-                document.getElementById('localVideo').srcObject = localStream;
-                document.getElementById('video-section').classList.add('active');
-                return localStream;
-            } catch (err) {
-                alert("Kamera/Mikro Zugriff verweigert.");
-            }
-        }
-
-        function initPeer(id) {
-            peer = new Peer(id);
-            peer.on('call', async (call) => {
-                if (confirm(`Eingehender Anruf von ${call.peer}. Annehmen?`)) {
-                    const stream = await startMedia();
-                    call.answer(stream);
-                    call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
-                }
+        // --- TEAMS (ECHTZEIT) ---
+        function loadTeams(myShortId) {
+            const q = query(collection(db, "teams"), where("members", "array-contains", myShortId));
+            onSnapshot(q, (snap) => {
+                const container = document.getElementById('team-list-container');
+                container.innerHTML = `<div class="team-item ${activeRoom === 'Hauptraum' ? 'active-room' : ''}" id="item-Hauptraum" onclick="switchRoom('Hauptraum')">📢 Hauptraum</div>`;
+                
+                snap.forEach(tDoc => {
+                    const team = tDoc.data();
+                    const div = document.createElement('div');
+                    div.className = `team-item ${activeRoom === tDoc.id ? 'active-room' : ''}`;
+                    div.id = `item-${tDoc.id}`;
+                    div.innerHTML = `<span>👥 ${team.name}</span> <button class="add-member-btn" onclick="addMember(event, '${tDoc.id}')">+</button>`;
+                    div.onclick = () => switchRoom(tDoc.id, team.name);
+                    container.appendChild(div);
+                });
             });
         }
 
-        window.makeCall = async () => {
-            const targetId = prompt("ID des Teammitglieds eingeben:");
-            if (!targetId) return;
-            const stream = await startMedia();
-            const call = peer.call(targetId, stream);
-            call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
+        window.createNewTeam = async () => {
+            const name = prompt("Team Name:");
+            if(name) {
+                await addDoc(collection(db, "teams"), {
+                    name: name,
+                    members: [auth.currentUser.uid.substring(0, 5)],
+                    createdAt: serverTimestamp()
+                });
+            }
         };
 
-        // --- DATA LOGIC ---
-        window.switchRoom = (roomId, name = "Hauptraum") => {
+        window.addMember = async (e, teamId) => {
+            e.stopPropagation();
+            const memberId = prompt("Gib die 5-stellige ID der Person ein:");
+            if(memberId) {
+                await updateDoc(doc(db, "teams", teamId), {
+                    members: arrayUnion(memberId)
+                });
+                alert("Person hinzugefügt!");
+            }
+        };
+
+        // --- CHAT ---
+        window.switchRoom = (roomId, roomName = "Hauptraum") => {
             activeRoom = roomId;
+            document.getElementById('current-room-name').innerText = roomName;
+            document.querySelectorAll('.team-item').forEach(el => el.classList.remove('active-room'));
+            document.getElementById('item-' + roomId)?.classList.add('active-room');
             loadChat(roomId);
-            // Update UI Active State
-            document.querySelectorAll('.team-item').forEach(i => i.classList.remove('active-room'));
-            document.getElementById(`item-${roomId}`)?.classList.add('active-room');
         };
 
         function loadChat(roomId) {
             if (unsubChat) unsubChat();
             const q = query(collection(db, "messages"), where("room", "==", roomId), orderBy("timestamp", "asc"));
             unsubChat = onSnapshot(q, (snap) => {
-                const container = document.getElementById('chat-messages');
-                container.innerHTML = "";
-                snap.forEach(msgDoc => {
-                    const data = msgDoc.data();
-                    const isMe = data.uid === auth.currentUser.uid;
-                    container.innerHTML += `
+                const box = document.getElementById('chat-messages');
+                box.innerHTML = "";
+                snap.forEach(mDoc => {
+                    const d = mDoc.data();
+                    const isMe = d.uid === auth.currentUser.uid;
+                    box.innerHTML += `
                         <div class="msg ${isMe ? 'sent' : 'received'}">
-                            <small style="display:block; font-size:10px; opacity:0.7;">${data.user}</small>
-                            ${data.text}
+                            <span class="user-label">${d.user}</span>
+                            ${d.text}
                         </div>`;
                 });
-                container.scrollTop = container.scrollHeight;
+                box.scrollTop = box.scrollHeight;
+            }, (err) => {
+                if(err.code === 'failed-precondition') console.error("Index fehlt! Link in Konsole klicken.");
             });
         }
 
         window.sendMsg = async () => {
             const inp = document.getElementById('msgInput');
-            if (!inp.value.trim()) return;
+            if(!inp.value.trim()) return;
             await addDoc(collection(db, "messages"), {
                 text: inp.value,
                 user: auth.currentUser.email.split('@')[0],
@@ -216,39 +231,32 @@
             inp.value = "";
         };
 
-        window.createNewTeam = async () => {
-            const name = prompt("Team Name:");
-            if (!name) return;
-            await addDoc(collection(db, "teams"), {
-                name,
-                members: [auth.currentUser.uid.substring(0, 5)],
-                timestamp: serverTimestamp()
-            });
-        };
-
-        function loadTeams(myShortId) {
-            const q = query(collection(db, "teams"), where("members", "array-contains", myShortId));
-            onSnapshot(q, (snap) => {
-                const list = document.getElementById('team-list-container');
-                list.innerHTML = `<div class="team-item ${activeRoom === 'Hauptraum' ? 'active-room' : ''}" id="item-Hauptraum" onclick="switchRoom('Hauptraum')">📢 Hauptraum</div>`;
-                snap.forEach(tDoc => {
-                    const team = tDoc.data();
-                    list.innerHTML += `
-                        <div class="team-item" id="item-${tDoc.id}" onclick="switchRoom('${tDoc.id}', '${team.name}')">
-                            <span>👥 ${team.name}</span>
-                            <button onclick="addMember(event, '${tDoc.id}')" style="border:none; background:none; color:white; cursor:pointer;">+</button>
-                        </div>`;
-                });
+        // --- VIDEO (PEERJS) ---
+        function initPeer(id) {
+            peer = new Peer(id);
+            peer.on('call', async (call) => {
+                if(confirm("Anruf annehmen?")) {
+                    localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+                    document.getElementById('localVideo').srcObject = localStream;
+                    document.getElementById('video-section').classList.add('active');
+                    call.answer(localStream);
+                    call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
+                }
             });
         }
 
-        window.addMember = async (e, tId) => {
-            e.stopPropagation();
-            const mId = prompt("Mitglied ID hinzufügen:");
-            if (mId) await updateDoc(doc(db, "teams", tId), { members: arrayUnion(mId) });
+        window.makeCall = async () => {
+            const remoteId = prompt("Ziel-ID eingeben:");
+            if(!remoteId) return;
+            localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+            document.getElementById('localVideo').srcObject = localStream;
+            document.getElementById('video-section').classList.add('active');
+            const call = peer.call(remoteId, localStream);
+            call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
         };
 
-        document.getElementById('msgInput').addEventListener('keypress', e => e.key === 'Enter' && sendMsg());
+        document.getElementById('msgInput').onkeypress = (e) => e.key === 'Enter' && sendMsg();
+
     </script>
 </body>
 </html>
