@@ -3,62 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIM 2026 - Ultimate Manager</title>
+    <title>BIM 2026 - Ultimate Manager No-Storage</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { 
-            --primary: #007bff; --dark: #121212; --light: #1e1e1e; 
-            --accent: #333; --danger: #ef4444; --success: #22c55e; 
-        }
-        body { font-family: 'Segoe UI', Roboto, sans-serif; background: var(--dark); color: #e5e7eb; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        :root { --primary: #007bff; --dark: #121212; --light: #1e1e1e; --accent: #333; --danger: #ef4444; --success: #22c55e; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--dark); color: #e5e7eb; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
         /* Sidebar */
-        .sidebar { width: 280px; background: var(--light); border-right: 1px solid var(--accent); display: flex; flex-direction: column; flex-shrink: 0; }
+        .sidebar { width: 300px; background: var(--light); border-right: 1px solid var(--accent); display: flex; flex-direction: column; flex-shrink: 0; }
         .auth-box { padding: 20px; border-bottom: 1px solid var(--accent); }
         .auth-input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--accent); background: #000; color: white; box-sizing: border-box; }
         
         .team-section { flex: 1; padding: 15px; overflow-y: auto; }
         .team-item { 
             padding: 12px; background: #2a2a2a; margin-bottom: 8px; border-radius: 8px; 
-            cursor: pointer; transition: 0.2s; display: flex; justify-content: space-between; align-items: center;
+            cursor: pointer; transition: 0.2s; display: flex; flex-direction: column; gap: 5px;
             border-left: 4px solid transparent;
         }
         .team-item:hover { background: #383838; }
         .active-room { border-left-color: var(--primary); background: #383838; }
-        .add-member-btn { background: var(--primary); border: none; color: white; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-size: 16px; }
+        .team-controls { display: flex; gap: 5px; justify-content: flex-end; }
+        .btn-small { padding: 3px 8px; font-size: 11px; border: none; border-radius: 4px; cursor: pointer; color: white; }
 
         /* Main Content */
-        .main { flex: 1; display: flex; flex-direction: column; position: relative; }
-        
-        /* Video Section */
-        #video-section { 
-            background: #000; display: none; flex-direction: column; align-items: center;
-            padding: 10px; border-bottom: 2px solid var(--accent);
-        }
+        .main { flex: 1; display: flex; flex-direction: column; }
+        #video-section { background: #000; display: none; padding: 10px; border-bottom: 2px solid var(--accent); flex-direction: column; align-items: center; }
         #video-section.active { display: flex; }
         #video-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 800px; }
         video { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 10px; background: #111; }
-        .mirror { transform: scaleX(-1); }
 
         /* Chat */
         #chat-section { flex: 1; display: flex; flex-direction: column; background: #151515; }
-        #chat-header { padding: 15px 20px; background: #1a1a1a; border-bottom: 1px solid var(--accent); font-weight: bold; }
         #chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px 15px; border-radius: 15px; max-width: 70%; font-size: 14px; line-height: 1.4; }
+        .msg { padding: 10px 15px; border-radius: 15px; max-width: 70%; font-size: 14px; line-height: 1.4; position: relative; group; }
         .sent { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
         .received { background: var(--accent); align-self: flex-start; border-bottom-left-radius: 2px; }
-        .user-label { font-size: 10px; opacity: 0.6; display: block; margin-bottom: 4px; }
+        .chat-img { max-width: 100%; border-radius: 8px; margin-top: 5px; cursor: pointer; display: block; }
+        .file-link { color: #ffeb3b; text-decoration: underline; display: block; margin-top: 5px; font-weight: bold; }
+        .delete-msg { font-size: 10px; color: #ff9999; cursor: pointer; margin-top: 5px; display: none; text-align: right; }
+        .msg:hover .delete-msg { display: block; }
 
-        .input-area { padding: 15px; background: var(--light); display: flex; gap: 10px; }
+        .input-area { padding: 15px; background: var(--light); display: flex; gap: 10px; align-items: center; }
         input[type="text"] { flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid var(--accent); background: #0a0a0a; color: white; outline: none; }
-        .btn-action { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; }
+        .btn-action { width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; flex-shrink: 0; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
         <div class="auth-box" id="login-ui">
-            <h3 style="margin: 0 0 15px 0;">BIM 2026</h3>
+            <h3>BIM 2026</h3>
             <input type="email" id="email" class="auth-input" placeholder="E-Mail">
             <input type="password" id="password" class="auth-input" placeholder="Passwort">
             <button onclick="handleAuth()" style="width:100%; padding:10px; background:var(--success); border:none; color:white; border-radius:5px; cursor:pointer;">Anmelden / Registrieren</button>
@@ -66,13 +60,13 @@
 
         <div class="auth-box" id="user-ui" style="display:none;">
             <div id="display-email" style="font-size: 13px; font-weight: bold; color: var(--primary);"></div>
-            <div style="font-size: 11px; margin-top: 5px;">Team-ID: <strong id="display-id" style="color:var(--success);"></strong></div>
-            <button onclick="handleLogout()" style="margin-top:10px; width:100%; background:transparent; border:1px solid var(--danger); color:var(--danger); padding:4px; border-radius:4px; cursor:pointer; font-size:11px;">Abmelden</button>
+            <div style="font-size: 11px;">Deine ID: <strong id="display-id" style="color:var(--success);"></strong></div>
+            <button onclick="handleLogout()" style="margin-top:8px; width:100%; background:transparent; border:1px solid var(--danger); color:var(--danger); padding:3px; border-radius:4px; cursor:pointer; font-size:10px;">Abmelden</button>
         </div>
 
         <div class="team-section">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <span style="font-size:11px; color:#777; letter-spacing:1px;">TEAMS</span>
+                <span style="font-size:11px; color:#777;">RÄUME & TEAMS</span>
                 <button onclick="createNewTeam()" style="background:var(--primary); border:none; color:white; border-radius:4px; padding:2px 8px; cursor:pointer;">+</button>
             </div>
             <div id="team-list-container"></div>
@@ -81,18 +75,17 @@
 
     <div class="main">
         <div id="video-section">
-            <div id="video-grid">
-                <video id="localVideo" class="mirror" autoplay playsinline muted></video>
-                <video id="remoteVideo" autoplay playsinline></video>
-            </div>
-            <button onclick="location.reload()" style="margin-top:10px; background:var(--danger); border:none; color:white; padding:5px 15px; border-radius:20px; cursor:pointer;">Auflegen</button>
+            <div id="video-grid"><video id="localVideo" muted autoplay playsinline></video><video id="remoteVideo" autoplay playsinline></video></div>
+            <button onclick="location.reload()" style="background:var(--danger); color:white; border:none; padding:5px 15px; border-radius:20px; margin-top:10px; cursor:pointer;">Auflegen</button>
         </div>
 
         <div id="chat-section">
-            <div id="chat-header">Raum: <span id="current-room-name">Hauptraum</span></div>
             <div id="chat-messages"></div>
             <div class="input-area">
                 <button class="btn-action" style="background:var(--success)" onclick="makeCall()">📞</button>
+                <label class="btn-action" style="background:#444; cursor:pointer;">
+                    📎 <input type="file" id="fileInput" style="display:none;" onchange="uploadFile(this)">
+                </label>
                 <input type="text" id="msgInput" placeholder="Nachricht schreiben...">
                 <button class="btn-action" style="background:var(--primary)" onclick="sendMsg()">➤</button>
             </div>
@@ -102,13 +95,13 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, doc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, doc, updateDoc, arrayUnion, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB9Mw9ljgqeJztFtBEM2H7-c6k7XGy8zAw",
             authDomain: "projektmangerbim2026.firebaseapp.com",
             projectId: "projektmangerbim2026",
-            storageBucket: "projektmangerbim2026.firebasestorage.app",
+            storageBucket: "projektmangerbim2026.appspot.com",
             messagingSenderId: "88720534809",
             appId: "1:88720534809:web:4da70e450799e1cc80a988"
         };
@@ -116,21 +109,16 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-
         let peer, localStream, activeRoom = "Hauptraum", unsubChat;
 
         // --- AUTH ---
         window.handleAuth = async () => {
-            const email = document.getElementById('email').value;
-            const pass = document.getElementById('password').value;
-            if(!email || !pass) return alert("Bitte Daten ausfüllen");
-            try {
-                await signInWithEmailAndPassword(auth, email, pass);
-            } catch (e) {
-                await createUserWithEmailAndPassword(auth, email, pass).catch(err => alert(err.message));
-            }
+            const e = document.getElementById('email').value;
+            const p = document.getElementById('password').value;
+            if(!e || !p) return alert("Daten fehlen");
+            try { await signInWithEmailAndPassword(auth, e, p); } 
+            catch { await createUserWithEmailAndPassword(auth, e, p).catch(err => alert(err.message)); }
         };
-
         window.handleLogout = () => signOut(auth).then(() => location.reload());
 
         onAuthStateChanged(auth, (user) => {
@@ -138,67 +126,67 @@
                 document.getElementById('login-ui').style.display = 'none';
                 document.getElementById('user-ui').style.display = 'block';
                 document.getElementById('display-email').innerText = user.email;
-                const myShortId = user.uid.substring(0, 5);
-                document.getElementById('display-id').innerText = myShortId;
-                
-                initPeer(myShortId);
-                loadTeams(myShortId);
-                switchRoom('Hauptraum');
+                const myId = user.uid.substring(0, 5);
+                document.getElementById('display-id').innerText = myId;
+                initPeer(myId); loadTeams(myId); switchRoom('Hauptraum');
             }
         });
 
-        // --- TEAMS (ECHTZEIT) ---
-        function loadTeams(myShortId) {
-            const q = query(collection(db, "teams"), where("members", "array-contains", myShortId));
+        // --- TEAMS VERWALTEN ---
+        function loadTeams(myId) {
+            const q = query(collection(db, "teams"), where("members", "array-contains", myId));
             onSnapshot(q, (snap) => {
                 const container = document.getElementById('team-list-container');
-                container.innerHTML = `<div class="team-item ${activeRoom === 'Hauptraum' ? 'active-room' : ''}" id="item-Hauptraum" onclick="switchRoom('Hauptraum')">📢 Hauptraum</div>`;
-                
+                container.innerHTML = `<div class="team-item ${activeRoom==='Hauptraum'?'active-room':''}" onclick="switchRoom('Hauptraum')">📢 Hauptraum</div>`;
                 snap.forEach(tDoc => {
-                    const team = tDoc.data();
+                    const t = tDoc.data();
+                    const isOwner = t.owner === auth.currentUser.uid;
                     const div = document.createElement('div');
-                    div.className = `team-item ${activeRoom === tDoc.id ? 'active-room' : ''}`;
+                    div.className = `team-item ${activeRoom===tDoc.id?'active-room':''}`;
                     div.id = `item-${tDoc.id}`;
-                    div.innerHTML = `<span>👥 ${team.name}</span> <button class="add-member-btn" onclick="addMember(event, '${tDoc.id}')">+</button>`;
-                    div.onclick = () => switchRoom(tDoc.id, team.name);
+                    div.innerHTML = `
+                        <div onclick="switchRoom('${tDoc.id}', '${t.name}')">👥 ${t.name}</div>
+                        <div class="team-controls">
+                            <button class="btn-small" style="background:var(--primary)" onclick="addMember(event, '${tDoc.id}')">+</button>
+                            ${isOwner ? `<button class="btn-small" style="background:var(--danger)" onclick="deleteTeam(event, '${tDoc.id}')">🗑️</button>` : ''}
+                        </div>`;
                     container.appendChild(div);
                 });
             });
         }
 
         window.createNewTeam = async () => {
-            const name = prompt("Team Name:");
-            if(name) {
-                await addDoc(collection(db, "teams"), {
-                    name: name,
-                    members: [auth.currentUser.uid.substring(0, 5)],
-                    createdAt: serverTimestamp()
-                });
-            }
+            const n = prompt("Team Name:");
+            if(n) await addDoc(collection(db, "teams"), { 
+                name: n, members: [auth.currentUser.uid.substring(0, 5)], 
+                owner: auth.currentUser.uid, createdAt: serverTimestamp() 
+            });
         };
 
-        window.addMember = async (e, teamId) => {
+        window.deleteTeam = async (e, id) => {
             e.stopPropagation();
-            const memberId = prompt("Gib die 5-stellige ID der Person ein:");
-            if(memberId) {
-                await updateDoc(doc(db, "teams", teamId), {
-                    members: arrayUnion(memberId)
-                });
-                alert("Person hinzugefügt!");
+            if(confirm("Dieses Team für alle löschen?")) {
+                await deleteDoc(doc(db, "teams", id));
+                if(activeRoom === id) switchRoom('Hauptraum');
             }
         };
 
-        // --- CHAT ---
-        window.switchRoom = (roomId, roomName = "Hauptraum") => {
-            activeRoom = roomId;
-            document.getElementById('current-room-name').innerText = roomName;
+        window.addMember = async (e, id) => {
+            e.stopPropagation();
+            const m = prompt("5-stellige ID der Person eingeben:");
+            if(m) await updateDoc(doc(db, "teams", id), { members: arrayUnion(m.trim()) });
+        };
+
+        // --- CHAT & BASE64 DATEIEN ---
+        window.switchRoom = (id, name="Hauptraum") => {
+            activeRoom = id;
+            loadChat(id);
             document.querySelectorAll('.team-item').forEach(el => el.classList.remove('active-room'));
-            document.getElementById('item-' + roomId)?.classList.add('active-room');
-            loadChat(roomId);
+            document.getElementById('item-'+id)?.classList.add('active-room');
         };
 
         function loadChat(roomId) {
-            if (unsubChat) unsubChat();
+            if(unsubChat) unsubChat();
             const q = query(collection(db, "messages"), where("room", "==", roomId), orderBy("timestamp", "asc"));
             unsubChat = onSnapshot(q, (snap) => {
                 const box = document.getElementById('chat-messages');
@@ -206,37 +194,59 @@
                 snap.forEach(mDoc => {
                     const d = mDoc.data();
                     const isMe = d.uid === auth.currentUser.uid;
-                    box.innerHTML += `
-                        <div class="msg ${isMe ? 'sent' : 'received'}">
-                            <span class="user-label">${d.user}</span>
-                            ${d.text}
-                        </div>`;
+                    let content = d.text;
+                    if(d.type === 'file') {
+                        content = d.isImg ? `<img src="${d.data}" class="chat-img" onclick="window.open('${d.data}')">` 
+                                          : `<a href="${d.data}" download="${d.fileName}" class="file-link">📄 ${d.fileName}</a>`;
+                    }
+                    const msgDiv = document.createElement('div');
+                    msgDiv.className = `msg ${isMe?'sent':'received'}`;
+                    msgDiv.innerHTML = `<small style="opacity:0.6;display:block">${d.user}</small>${content}`;
+                    if(isMe) {
+                        const delBtn = document.createElement('div');
+                        delBtn.className = 'delete-msg';
+                        delBtn.innerText = 'Löschen';
+                        delBtn.onclick = () => deleteDoc(doc(db, "messages", mDoc.id));
+                        msgDiv.appendChild(delBtn);
+                    }
+                    box.appendChild(msgDiv);
                 });
                 box.scrollTop = box.scrollHeight;
-            }, (err) => {
-                if(err.code === 'failed-precondition') console.error("Index fehlt! Link in Konsole klicken.");
             });
         }
 
         window.sendMsg = async () => {
-            const inp = document.getElementById('msgInput');
-            if(!inp.value.trim()) return;
-            await addDoc(collection(db, "messages"), {
-                text: inp.value,
-                user: auth.currentUser.email.split('@')[0],
-                uid: auth.currentUser.uid,
-                room: activeRoom,
-                timestamp: serverTimestamp()
+            const i = document.getElementById('msgInput');
+            if(!i.value.trim()) return;
+            await addDoc(collection(db, "messages"), { 
+                text: i.value, user: auth.currentUser.email.split('@')[0], 
+                uid: auth.currentUser.uid, room: activeRoom, timestamp: serverTimestamp() 
             });
-            inp.value = "";
+            i.value = "";
         };
 
-        // --- VIDEO (PEERJS) ---
+        window.uploadFile = async (input) => {
+            const file = input.files[0];
+            if(!file) return;
+            if(file.size > 800000) return alert("Datei zu groß (max. 800KB ohne Storage)");
+            
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                await addDoc(collection(db, "messages"), {
+                    type: 'file', data: e.target.result, fileName: file.name, 
+                    isImg: file.type.startsWith('image/'), user: auth.currentUser.email.split('@')[0],
+                    uid: auth.currentUser.uid, room: activeRoom, timestamp: serverTimestamp()
+                });
+            };
+            reader.readAsDataURL(file);
+        };
+
+        // --- VIDEO CALL ---
         function initPeer(id) {
             peer = new Peer(id);
-            peer.on('call', async (call) => {
-                if(confirm("Anruf annehmen?")) {
-                    localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+            peer.on('call', async call => {
+                if(confirm("Eingehender Video-Anruf. Annehmen?")) {
+                    localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
                     document.getElementById('localVideo').srcObject = localStream;
                     document.getElementById('video-section').classList.add('active');
                     call.answer(localStream);
@@ -244,19 +254,17 @@
                 }
             });
         }
-
         window.makeCall = async () => {
-            const remoteId = prompt("Ziel-ID eingeben:");
-            if(!remoteId) return;
-            localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+            const tid = prompt("5-stellige Ziel-ID für Videoanruf:");
+            if(!tid) return;
+            localStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
             document.getElementById('localVideo').srcObject = localStream;
             document.getElementById('video-section').classList.add('active');
-            const call = peer.call(remoteId, localStream);
+            const call = peer.call(tid, localStream);
             call.on('stream', s => document.getElementById('remoteVideo').srcObject = s);
         };
 
-        document.getElementById('msgInput').onkeypress = (e) => e.key === 'Enter' && sendMsg();
-
+        document.getElementById('msgInput').onkeypress = (e) => e.key==='Enter' && sendMsg();
     </script>
 </body>
 </html>
