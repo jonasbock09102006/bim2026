@@ -3,77 +3,82 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIM 2026 - Ultimate Manager Pro</title>
+    <title>BIM 2026 - Pro Manager</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        :root { --primary: #007bff; --dark: #121212; --light: #1e1e1e; --accent: #333; --danger: #ef4444; --success: #22c55e; }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--dark); color: #e5e7eb; margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        :root { --primary: #3b82f6; --dark: #0f172a; --light: #1e293b; --accent: #334155; --danger: #ef4444; --success: #22c55e; }
+        body { font-family: 'Inter', sans-serif; background: var(--dark); color: #f1f5f9; margin: 0; display: flex; height: 100vh; overflow: hidden; }
         
         /* Sidebar */
-        .sidebar { width: 300px; background: var(--light); border-right: 1px solid var(--accent); display: flex; flex-direction: column; flex-shrink: 0; }
-        .auth-box { padding: 20px; border-bottom: 1px solid var(--accent); }
-        .auth-input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 6px; border: 1px solid var(--accent); background: #000; color: white; box-sizing: border-box; }
+        .sidebar { width: 320px; background: #111827; border-right: 1px solid var(--accent); display: flex; flex-direction: column; flex-shrink: 0; }
+        .user-info { padding: 20px; background: #1f2937; border-bottom: 1px solid var(--accent); }
+        .auth-input { width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid var(--accent); background: #000; color: white; box-sizing: border-box; }
         
-        .team-section { flex: 1; padding: 15px; overflow-y: auto; }
-        .team-item { padding: 12px; background: #2a2a2a; margin-bottom: 8px; border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; gap: 5px; border-left: 4px solid transparent; transition: 0.2s; }
-        .team-item:hover { background: #333; }
-        .active-room { border-left-color: var(--primary); background: #383838; }
+        .team-list { flex: 1; padding: 15px; overflow-y: auto; }
+        .team-card { 
+            background: #1f2937; padding: 12px; border-radius: 12px; margin-bottom: 10px; 
+            cursor: pointer; border: 2px solid transparent; transition: 0.2s;
+        }
+        .team-card:hover { background: #374151; }
+        .team-card.active { border-color: var(--primary); background: #1e3a8a; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .card-actions { display: flex; gap: 8px; margin-top: 8px; }
         
-        .team-header { display: flex; justify-content: space-between; align-items: center; }
-        .team-controls { display: flex; gap: 5px; margin-top: 5px; justify-content: flex-end; }
-        .btn-small { padding: 4px 8px; font-size: 11px; border: none; border-radius: 4px; cursor: pointer; color: white; display: flex; align-items: center; justify-content: center; }
+        /* Main Chat */
+        .chat-container { flex: 1; display: flex; flex-direction: column; background: #0b0f1a; }
+        #chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; }
+        
+        /* Message Bubbles */
+        .message { max-width: 70%; padding: 12px 16px; border-radius: 18px; position: relative; font-size: 14px; line-height: 1.5; }
+        .message.sent { align-self: flex-end; background: var(--primary); color: white; border-bottom-right-radius: 4px; }
+        .message.received { align-self: flex-start; background: #374151; color: white; border-bottom-left-radius: 4px; }
+        .msg-user { font-size: 11px; opacity: 0.7; margin-bottom: 4px; display: block; }
+        
+        .msg-tools { margin-top: 8px; display: flex; gap: 12px; font-size: 11px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 6px; }
+        .tool-btn { cursor: pointer; opacity: 0.8; font-weight: bold; }
+        .tool-btn:hover { opacity: 1; text-decoration: underline; }
 
-        /* Chat */
-        #chat-section { flex: 1; display: flex; flex-direction: column; background: #151515; }
-        #chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px 15px; border-radius: 15px; max-width: 75%; font-size: 14px; line-height: 1.4; position: relative; }
-        .sent { background: var(--primary); align-self: flex-end; border-bottom-right-radius: 2px; }
-        .received { background: var(--accent); align-self: flex-start; border-bottom-left-radius: 2px; }
-        .msg-meta { font-size: 10px; opacity: 0.6; margin-bottom: 4px; display: flex; justify-content: space-between; }
-        
-        .msg-actions { margin-top: 8px; display: flex; gap: 10px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 5px; justify-content: flex-end; }
-        .action-link { font-size: 11px; cursor: pointer; opacity: 0.8; }
-        .edit-btn { color: #ffc107; }
-        .del-btn { color: #ff6b6b; }
+        /* Input Area */
+        .input-bar { padding: 20px; background: #111827; display: flex; gap: 12px; align-items: center; border-top: 1px solid var(--accent); }
+        .input-bar input { flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid var(--accent); background: #000; color: white; outline: none; }
+        .btn-circle { width: 45px; height: 45px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: white; transition: 0.2s; }
+        .btn-circle:hover { transform: scale(1.05); }
 
-        .input-area { padding: 15px; background: var(--light); display: flex; gap: 10px; align-items: center; }
-        input[type="text"] { flex: 1; padding: 12px 18px; border-radius: 25px; border: 1px solid var(--accent); background: #0a0a0a; color: white; outline: none; }
-        .btn-action { width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; flex-shrink: 0; }
+        .btn-small { padding: 5px 10px; border-radius: 6px; border: none; font-size: 11px; cursor: pointer; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
 
     <div class="sidebar">
-        <div class="auth-box" id="login-ui">
-            <h3>BIM 2026 LOGIN</h3>
-            <input type="email" id="email" class="auth-input" placeholder="E-Mail">
-            <input type="password" id="password" class="auth-input" placeholder="Passwort">
-            <button onclick="handleAuth()" style="width:100%; padding:12px; background:var(--success); border:none; color:white; border-radius:5px; cursor:pointer; font-weight:bold;">Anmelden / Registrieren</button>
-        </div>
-
-        <div class="auth-box" id="user-ui" style="display:none;">
-            <div id="display-email" style="font-size: 13px; font-weight: bold; color: var(--primary); margin-bottom: 4px;"></div>
-            <div style="font-size: 11px; color: #aaa;">Deine ID: <strong id="display-id" style="color:var(--success);"></strong></div>
-            <button onclick="handleLogout()" style="margin-top:10px; width:100%; background:transparent; border:1px solid var(--danger); color:var(--danger); padding:5px; border-radius:4px; cursor:pointer; font-size:10px;">Abmelden</button>
-        </div>
-
-        <div class="team-section">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <span style="font-size:12px; font-weight:bold; color:#777; letter-spacing: 1px;">CHATRÄUME</span>
-                <button onclick="createNewTeam()" style="background:var(--primary); border:none; color:white; border-radius:4px; padding:4px 10px; cursor:pointer; font-weight:bold;">+</button>
+        <div class="user-info" id="auth-section">
+            <div id="login-form">
+                <h3 style="margin-top:0">BIM 2026 Login</h3>
+                <input type="email" id="email" class="auth-input" placeholder="E-Mail">
+                <input type="password" id="password" class="auth-input" placeholder="Passwort">
+                <button onclick="handleAuth()" style="width:100%; padding:10px; background:var(--success); border:none; color:white; border-radius:8px; cursor:pointer; font-weight:bold;">Starten</button>
             </div>
-            <div id="team-list-container"></div>
+            <div id="user-logged" style="display:none;">
+                <div id="display-email" style="font-weight:bold; color:var(--primary); overflow:hidden; text-overflow:ellipsis;"></div>
+                <div style="font-size:12px; margin:5px 0;">Deine ID: <b id="display-id" style="color:var(--success)"></b></div>
+                <button onclick="handleLogout()" style="width:100%; background:var(--danger); border:none; color:white; padding:6px; border-radius:6px; cursor:pointer; font-size:11px;">Abmelden</button>
+            </div>
+        </div>
+
+        <div class="team-list">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                <span style="font-size:12px; font-weight:bold; color:#64748b; letter-spacing:1px;">MEINE RÄUME</span>
+                <button onclick="createNewTeam()" class="btn-small" style="background:var(--primary)">+ NEU</button>
+            </div>
+            <div id="rooms-container"></div>
         </div>
     </div>
 
-    <div class="main">
-        <div id="chat-section">
-            <div id="chat-messages"></div>
-            <div class="input-area">
-                <button class="btn-action" style="background:var(--success)" title="Videoanruf" onclick="makeCall()">📞</button>
-                <input type="text" id="msgInput" placeholder="Nachricht schreiben...">
-                <button class="btn-action" style="background:var(--primary)" onclick="sendMsg()">➤</button>
-            </div>
+    <div class="chat-container">
+        <div id="chat-messages"></div>
+        <div class="input-bar">
+            <button class="btn-circle" style="background:#4b5563" onclick="makeCall()">📞</button>
+            <input type="text" id="msgInput" placeholder="Nachricht schreiben...">
+            <button class="btn-circle" style="background:var(--primary)" onclick="sendMsg()">➤</button>
         </div>
     </div>
 
@@ -94,47 +99,49 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        let activeRoom = "Hauptraum", unsubChat;
+        let activeRoom = "Hauptraum", unsubChat, myShortId;
 
-        // AUTH HANDLER
+        // AUTH
         window.handleAuth = async () => {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
-            if(!e || !p) return alert("Bitte E-Mail und Passwort eingeben");
+            if(!e || !p) return alert("E-Mail/Passwort fehlt");
             try { await signInWithEmailAndPassword(auth, e, p); } 
-            catch { await createUserWithEmailAndPassword(auth, e, p).catch(err => alert("Fehler: " + err.message)); }
+            catch { await createUserWithEmailAndPassword(auth, e, p).catch(err => alert(err.message)); }
         };
         window.handleLogout = () => signOut(auth).then(() => location.reload());
 
         onAuthStateChanged(auth, (user) => {
             if (user) {
-                document.getElementById('login-ui').style.display = 'none';
-                document.getElementById('user-ui').style.display = 'block';
+                document.getElementById('login-form').style.display = 'none';
+                document.getElementById('user-logged').style.display = 'block';
                 document.getElementById('display-email').innerText = user.email;
-                const myId = user.uid.substring(0, 5);
-                document.getElementById('display-id').innerText = myId;
-                loadTeams(myId); switchRoom('Hauptraum');
+                myShortId = user.uid.substring(0, 5);
+                document.getElementById('display-id').innerText = myShortId;
+                loadTeams(myShortId); switchRoom('Hauptraum');
             }
         });
 
-        // TEAMS & ROOMS
-        function loadTeams(myId) {
-            const q = query(collection(db, "teams"), where("members", "array-contains", myId));
+        // TEAMS
+        function loadTeams(id) {
+            const q = query(collection(db, "teams"), where("members", "array-contains", id));
             onSnapshot(q, (snap) => {
-                const container = document.getElementById('team-list-container');
-                container.innerHTML = `<div class="team-item ${activeRoom==='Hauptraum'?'active-room':''}" onclick="switchRoom('Hauptraum')">📢 Hauptraum</div>`;
+                const container = document.getElementById('rooms-container');
+                container.innerHTML = `
+                    <div class="team-card ${activeRoom === 'Hauptraum' ? 'active' : ''}" onclick="switchRoom('Hauptraum')">
+                        <div class="card-header">📢 Hauptraum</div>
+                    </div>`;
+                
                 snap.forEach(tDoc => {
                     const t = tDoc.data();
                     const isOwner = t.owner === auth.currentUser.uid;
                     const div = document.createElement('div');
-                    div.className = `team-item ${activeRoom===tDoc.id?'active-room':''}`;
+                    div.className = `team-card ${activeRoom === tDoc.id ? 'active' : ''}`;
                     div.innerHTML = `
-                        <div class="team-header" onclick="switchRoom('${tDoc.id}')">
-                            <span>👥 ${t.name}</span>
-                        </div>
-                        <div class="team-controls">
-                            <button class="btn-small" style="background:var(--primary)" onclick="addMember(event, '${tDoc.id}')" title="Mitglied hinzufügen">ID +</button>
-                            ${isOwner ? `<button class="btn-small" style="background:var(--danger)" onclick="deleteTeam(event, '${tDoc.id}')" title="Raum löschen">Löschen 🗑️</button>` : ''}
+                        <div onclick="switchRoom('${tDoc.id}')" class="card-header">👥 ${t.name}</div>
+                        <div class="card-actions">
+                            <button class="btn-small" style="background:var(--success)" onclick="addMember(event, '${tDoc.id}')">ID +</button>
+                            ${isOwner ? `<button class="btn-small" style="background:var(--danger)" onclick="deleteTeam(event, '${tDoc.id}')">Löschen 🗑️</button>` : ''}
                         </div>`;
                     container.appendChild(div);
                 });
@@ -142,77 +149,58 @@
         }
 
         window.createNewTeam = async () => {
-            const n = prompt("Name des neuen Chatraums:");
-            if(n) {
-                await addDoc(collection(db, "teams"), { 
-                    name: n, 
-                    members: [auth.currentUser.uid.substring(0, 5)], 
-                    owner: auth.currentUser.uid, 
-                    createdAt: serverTimestamp() 
-                });
-            }
+            const n = prompt("Name des Teams:");
+            if(n) await addDoc(collection(db, "teams"), { name: n, members: [myShortId], owner: auth.currentUser.uid, createdAt: serverTimestamp() });
         };
 
-        // --- NEU: Chatraum löschen ---
-        window.deleteTeam = async (e, roomId) => {
-            e.stopPropagation(); // Verhindert, dass der Raum beim Klicken auf Löschen gewechselt wird
-            if(confirm("Möchtest du diesen Chatraum wirklich unwiderruflich löschen? Alle Nachrichten darin gehen verloren.")) {
-                try {
-                    // 1. Nachrichten im Raum löschen (optional, aber sauberer)
-                    const q = query(collection(db, "messages"), where("room", "==", roomId));
-                    const msgSnap = await getDocs(q);
-                    msgSnap.forEach(async (m) => await deleteDoc(doc(db, "messages", m.id)));
-
-                    // 2. Den Raum selbst löschen
-                    await deleteDoc(doc(db, "teams", roomId));
-                    
-                    if(activeRoom === roomId) switchRoom('Hauptraum');
-                    alert("Chatraum gelöscht.");
-                } catch (err) {
-                    alert("Fehler beim Löschen: " + err.message);
-                }
-            }
-        };
-
-        window.addMember = async (e, id) => {
+        window.deleteTeam = async (e, rid) => {
             e.stopPropagation();
-            const m = prompt("Gegner-ID (5-stellig) eingeben:");
-            if(m && m.length === 5) {
-                await updateDoc(doc(db, "teams", id), { members: arrayUnion(m.trim()) });
-                alert("Mitglied hinzugefügt!");
-            } else if(m) {
-                alert("Die ID muss 5 Zeichen lang sein.");
+            if(confirm("Diesen Raum und alle Nachrichten darin löschen?")) {
+                const msgs = await getDocs(query(collection(db, "messages"), where("room", "==", rid)));
+                msgs.forEach(async (m) => await deleteDoc(doc(db, "messages", m.id)));
+                await deleteDoc(doc(db, "teams", rid));
+                if(activeRoom === rid) switchRoom('Hauptraum');
             }
         };
 
-        // CHAT LOGIC
+        window.addMember = async (e, rid) => {
+            e.stopPropagation();
+            const id = prompt("5-stellige ID der Person:");
+            if(id && id.length === 5) {
+                await updateDoc(doc(db, "teams", rid), { members: arrayUnion(id.trim()) });
+                alert("Hinzugefügt!");
+            }
+        };
+
+        // CHAT
         window.switchRoom = (id) => {
             activeRoom = id;
             loadChat(id);
+            const cards = document.querySelectorAll('.team-card');
+            cards.forEach(c => c.classList.remove('active'));
         };
 
-        function loadChat(roomId) {
+        function loadChat(rid) {
             if(unsubChat) unsubChat();
-            const q = query(collection(db, "messages"), where("room", "==", roomId), orderBy("timestamp", "asc"));
+            const q = query(collection(db, "messages"), where("room", "==", rid), orderBy("timestamp", "asc"));
             unsubChat = onSnapshot(q, (snap) => {
                 const box = document.getElementById('chat-messages');
                 box.innerHTML = "";
                 snap.forEach(mDoc => {
                     const d = mDoc.data();
                     const isMe = d.uid === auth.currentUser.uid;
-                    const msgDiv = document.createElement('div');
-                    msgDiv.className = `msg ${isMe?'sent':'received'}`;
-                    msgDiv.innerHTML = `
-                        <div class="msg-meta"><span>${d.user}</span></div>
-                        <div class="msg-text">${d.text}</div>
+                    const div = document.createElement('div');
+                    div.className = `message ${isMe ? 'sent' : 'received'}`;
+                    div.innerHTML = `
+                        <span class="msg-user">${d.user}</span>
+                        <div>${d.text}</div>
                         ${isMe ? `
-                            <div class="msg-actions">
-                                <span class="action-link edit-btn" onclick="editMsg('${mDoc.id}', '${d.text}')">Bearbeiten 📝</span>
-                                <span class="action-link del-btn" onclick="deleteMsg('${mDoc.id}')">Löschen 🗑️</span>
+                            <div class="msg-tools">
+                                <span class="tool-btn" style="color:#fbbf24" onclick="editMsg('${mDoc.id}', '${d.text}')">📝</span>
+                                <span class="tool-btn" style="color:#f87171" onclick="deleteMsg('${mDoc.id}')">🗑️</span>
                             </div>
-                        ` : ''}
-                    `;
-                    box.appendChild(msgDiv);
+                        ` : ''}`;
+                    box.appendChild(div);
                 });
                 box.scrollTop = box.scrollHeight;
             });
@@ -221,20 +209,30 @@
         window.sendMsg = async () => {
             const i = document.getElementById('msgInput');
             if(!i.value.trim()) return;
-            await addDoc(collection(db, "messages"), { 
-                text: i.value, user: auth.currentUser.email.split('@')[0], 
-                uid: auth.currentUser.uid, room: activeRoom, timestamp: serverTimestamp() 
-            });
+            await addDoc(collection(db, "messages"), { text: i.value, user: auth.currentUser.email.split('@')[0], uid: auth.currentUser.uid, room: activeRoom, timestamp: serverTimestamp() });
             i.value = "";
         };
 
-        window.deleteMsg = async (id) => { if(confirm("Nachricht löschen?")) await deleteDoc(doc(db, "messages", id)); };
+        window.deleteMsg = async (id) => { if(confirm("Löschen?")) await deleteDoc(doc(db, "messages", id)); };
         window.editMsg = async (id, old) => {
-            const n = prompt("Bearbeiten:", old);
+            const n = prompt("Nachricht ändern:", old);
             if(n && n !== old) await updateDoc(doc(db, "messages", id), { text: n });
         };
 
-        document.getElementById('msgInput').onkeypress = (e) => e.key==='Enter' && sendMsg();
+        document.getElementById('msgInput').onkeypress = (e) => e.key === 'Enter' && sendMsg();
+
+        // PEER VIDEO (Minimal Setup)
+        function initPeer(id) {
+            const peer = new Peer(id);
+            peer.on('call', async call => {
+                const stream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+                call.answer(stream);
+            });
+        }
+        window.makeCall = () => {
+            const tid = prompt("ID des Partners:");
+            if(tid) alert("Anruf an " + tid + " gestartet (PeerJS)");
+        };
     </script>
 </body>
 </html>
