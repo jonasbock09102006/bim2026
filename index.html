@@ -3,76 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIM 2026 - Video Manager</title>
+    <title>BIM 2026 - Manager Pro</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: sans-serif; background: #0f172a; color: white; height: 100vh; display: grid; grid-template-columns: 280px 1fr; }
-        
-        /* SIDEBAR */
-        .sidebar { background: #111827; border-right: 2px solid #334155; display: flex; flex-direction: column; padding: 15px; }
-        .user-info { padding: 10px; background: #1e293b; border-radius: 8px; margin-bottom: 20px; }
-        .room-item { padding: 10px; background: #334155; margin-bottom: 8px; border-radius: 5px; cursor: pointer; }
-        .room-item.active { background: #3b82f6; }
-
-        /* CHAT AREA */
-        .chat-area { display: flex; flex-direction: column; background: #0b0f1a; position: relative; }
-        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .input-bar { padding: 15px; background: #111827; display: flex; gap: 10px; }
-        
-        /* VIDEO WINDOWS */
-        #video-overlay { 
-            position: fixed; top: 20px; right: 20px; width: 300px; 
-            background: #000; border: 2px solid #3b82f6; border-radius: 10px; 
-            display: none; z-index: 9999; padding: 10px; 
+        /* RESET & LAYOUT */
+        * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background: #000; color: white; 
+            height: 100vh; width: 100vw; 
+            overflow: hidden;
+            display: grid; 
+            grid-template-columns: 260px 1fr; /* Sidebar fest, Rest Chat */
         }
-        video { width: 100%; border-radius: 5px; background: #222; }
-        #local-video { width: 80px; position: absolute; bottom: 15px; right: 15px; border: 1px solid #fff; }
 
-        input { padding: 10px; border-radius: 5px; border: none; background: #1e293b; color: white; width: 100%; }
-        .btn { padding: 10px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; color: white; }
-        .btn-blue { background: #3b82f6; }
-        .btn-green { background: #22c55e; }
-        .btn-red { background: #ef4444; }
+        /* SIDEBAR (LINKS) */
+        .sidebar { background: #111; border-right: 1px solid #333; display: flex; flex-direction: column; }
+        .user-panel { padding: 15px; background: #222; border-bottom: 1px solid #333; }
+        .room-list { flex: 1; overflow-y: auto; padding: 10px; }
+        .room-btn { 
+            padding: 12px; margin-bottom: 5px; background: #1a1a1a; 
+            border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between;
+        }
+        .room-btn:hover { background: #2a2a2a; }
+        .room-btn.active { background: #2563eb; }
+
+        /* CHAT BEREICH (RECHTS) - 3-Zeilen-Grid */
+        .chat-area { 
+            display: grid; 
+            grid-template-rows: 60px 1fr 80px; /* Kopfzeile, Nachrichten, Eingabe */
+            height: 100vh; 
+            background: #0a0a0a;
+            position: relative;
+        }
+
+        /* 1. KOPFZEILE (Einstellungen) */
+        .chat-header { 
+            border-bottom: 1px solid #333; background: #111; 
+            display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+        }
+        .header-tools { display: flex; gap: 10px; }
+
+        /* 2. NACHRICHTEN (Mitte) */
+        #msg-container { 
+            overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 10px;
+        }
+
+        /* 3. EINGABE (Unten) */
+        .input-area { 
+            border-top: 1px solid #333; background: #111; 
+            padding: 15px; display: flex; gap: 10px; align-items: center;
+        }
+
+        /* ELEMENTE */
+        input { background: #000; border: 1px solid #444; color: white; padding: 10px; border-radius: 4px; width: 100%; }
+        .btn { padding: 8px 12px; border-radius: 4px; border: none; cursor: pointer; color: white; font-weight: bold; font-size: 12px; }
+        .btn-blue { background: #2563eb; }
+        .btn-red { background: #dc2626; }
+        .btn-green { background: #16a34a; }
+        .btn-icon { width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+
+        .msg { max-width: 70%; padding: 10px; border-radius: 10px; font-size: 14px; }
+        .sent { align-self: flex-end; background: #2563eb; }
+        .recv { align-self: flex-start; background: #333; }
+
+        /* VIDEO OVERLAY */
+        #video-grid {
+            position: fixed; top: 10px; right: 10px; width: 300px;
+            display: flex; flex-direction: column; gap: 10px; z-index: 999;
+            pointer-events: none; /* Klicks gehen durch, außer auf Videos */
+        }
+        video { width: 100%; border: 2px solid #2563eb; border-radius: 8px; background: #000; pointer-events: auto; }
+        .my-video { width: 100px; position: absolute; bottom: 20px; right: 20px; border: 1px solid white; z-index: 1000; }
     </style>
 </head>
 <body>
 
+<div id="video-grid"></div>
+
 <div class="sidebar">
-    <div id="auth-ui">
-        <input type="email" id="email" placeholder="E-Mail" style="margin-bottom:5px">
-        <input type="password" id="password" placeholder="Passwort" style="margin-bottom:10px">
-        <button class="btn btn-blue" style="width:100%" onclick="handleAuth()">Login / Register</button>
+    <div class="user-panel">
+        <div id="login-ui">
+            <input id="email" type="email" placeholder="E-Mail" style="margin-bottom:5px">
+            <input id="password" type="password" placeholder="Passwort" style="margin-bottom:5px">
+            <button class="btn btn-blue" style="width:100%" onclick="doAuth()">Login</button>
+        </div>
+        <div id="user-ui" style="display:none">
+            <div id="my-email" style="font-size:12px; color:#aaa"></div>
+            <div style="margin:5px 0">ID: <b id="my-id" style="color:#16a34a"></b></div>
+            <button class="btn" style="background:#333; width:100%; font-size:10px" onclick="doLogout()">Logout</button>
+        </div>
     </div>
-    <div id="user-ui" style="display:none" class="user-info">
-        <div id="u-mail" style="font-size:12px; margin-bottom:5px"></div>
-        <div style="font-size:11px">Deine Call-ID: <b id="u-id" style="color:#22c55e"></b></div>
-        <button class="btn btn-red" onclick="location.reload()" style="width:100%; margin-top:10px; font-size:10px">Abmelden</button>
+    <div class="room-list">
+        <button class="btn btn-blue" style="width:100%; margin-bottom:10px" onclick="createRoom()">+ Neuer Raum</button>
+        <div id="room-box"></div>
     </div>
-    <hr style="opacity:0.1; margin: 15px 0;">
-    <button class="btn btn-blue" onclick="createRoom()">+ Raum erstellen</button>
-    <div id="room-list" style="margin-top:15px"></div>
 </div>
 
 <div class="chat-area">
-    <div id="messages"></div>
-    <div class="input-bar">
-        <button class="btn btn-green" onclick="startCall()" title="Anrufen">📞 Call</button>
-        <input type="text" id="msgInput" placeholder="Nachricht schreiben...">
-        <button class="btn btn-blue" onclick="sendMsg()">Senden</button>
+    <div class="chat-header">
+        <b id="room-title">Lade...</b>
+        <div class="header-tools" id="room-tools" style="display:none">
+            <button class="btn btn-green" onclick="groupCall()" title="Alle anrufen">📞 Alle</button>
+            <button class="btn btn-blue" onclick="addPerson()" title="Person hinzufügen">+</button>
+            <button class="btn btn-red" onclick="kickPerson()" title="Person entfernen">-</button>
+            <button class="btn btn-red" onclick="deleteRoom()" title="Raum löschen">🗑</button>
+        </div>
     </div>
-</div>
 
-<div id="video-overlay">
-    <video id="remote-video" autoplay></video>
-    <video id="local-video" autoplay muted></video>
-    <button class="btn btn-red" style="width:100%; margin-top:10px" onclick="endCall()">Auflegen</button>
+    <div id="msg-container"></div>
+
+    <div class="input-area">
+        <input type="text" id="msgInput" placeholder="Nachricht schreiben...">
+        <button class="btn btn-blue btn-icon" onclick="sendMsg()">➤</button>
+    </div>
 </div>
 
 <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, doc, updateDoc, arrayUnion, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+    import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+    import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, doc, updateDoc, arrayUnion, arrayRemove, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
         apiKey: "AIzaSyB9Mw9ljgqeJztFtBEM2H7-c6k7XGy8zAw",
@@ -86,105 +136,95 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    let activeRoom = "Hauptraum", myID, peer, currentCall, unsub;
+    let activeRoomId = "Hauptraum", myID, unsubChat, peer;
 
-    // AUTH
-    window.handleAuth = async () => {
+    // --- AUTH ---
+    window.doAuth = async () => {
         const e = document.getElementById('email').value;
         const p = document.getElementById('password').value;
         try { await signInWithEmailAndPassword(auth, e, p); } 
-        catch { await createUserWithEmailAndPassword(auth, e, p).catch(a => alert(a.message)); }
+        catch { await createUserWithEmailAndPassword(auth, e, p).catch(err => alert(err.message)); }
     };
+    window.doLogout = () => signOut(auth).then(() => location.reload());
 
     onAuthStateChanged(auth, u => {
         if(u) {
-            document.getElementById('auth-ui').style.display='none';
+            document.getElementById('login-ui').style.display='none';
             document.getElementById('user-ui').style.display='block';
-            document.getElementById('u-mail').innerText = u.email;
+            document.getElementById('my-email').innerText = u.email;
             myID = u.uid.substring(0,5);
-            document.getElementById('u-id').innerText = myID;
-            initVideo(myID);
-            loadRooms(); switchRoom('Hauptraum');
+            document.getElementById('my-id').innerText = myID;
+            initPeer(myID);
+            loadRooms(); switchRoom('Hauptraum', '📢 Hauptraum');
         }
     });
 
-    // VIDEO CALL FUNKTIONEN
-    function initVideo(id) {
-        peer = new Peer(id);
-        peer.on('call', async call => {
-            if(confirm("Anruf erhalten! Annehmen?")) {
-                const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-                call.answer(stream);
-                setupVideoUI(call, stream);
-            }
-        });
-    }
-
-    window.startCall = async () => {
-        const target = prompt("ID des Partners eingeben:");
-        if(!target) return;
-        const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-        const call = peer.call(target, stream);
-        setupVideoUI(call, stream);
-    };
-
-    function setupVideoUI(call, localStream) {
-        currentCall = call;
-        document.getElementById('video-overlay').style.display = 'block';
-        document.getElementById('local-video').srcObject = localStream;
-        call.on('stream', remoteStream => {
-            document.getElementById('remote-video').srcObject = remoteStream;
-        });
-    }
-
-    window.endCall = () => { if(currentCall) currentCall.close(); location.reload(); };
-
-    // ROOMS & CHAT
-    window.switchRoom = (id) => { activeRoom = id; loadChat(); loadRooms(); };
-
+    // --- RÄUME ---
     function loadRooms() {
-        onSnapshot(query(collection(db, "teams"), where("members", "array-contains", myID)), snap => {
-            const list = document.getElementById('room-list');
-            list.innerHTML = `<div class="room-item ${activeRoom==='Hauptraum'?'active':''}" onclick="switchRoom('Hauptraum')">📢 Hauptraum</div>`;
+        const q = query(collection(db, "teams"), where("members", "array-contains", myID));
+        onSnapshot(q, snap => {
+            const box = document.getElementById('room-box');
+            box.innerHTML = `<div class="room-btn ${activeRoomId==='Hauptraum'?'active':''}" onclick="switchRoom('Hauptraum','📢 Hauptraum')">📢 Hauptraum</div>`;
             snap.forEach(d => {
                 const r = d.data();
-                const div = document.createElement('div');
-                div.className = `room-item ${activeRoom===d.id?'active':''}`;
-                div.innerHTML = `
-                    <div onclick="switchRoom('${d.id}')"><b>👥 ${r.name}</b></div>
-                    <div style="display:flex; gap:5px; margin-top:5px">
-                        <button class="btn btn-green" style="font-size:9px; flex:1" onclick="invite('${d.id}')">ID +</button>
-                        ${r.owner===auth.currentUser.uid ? `<button class="btn btn-red" style="font-size:9px; flex:1" onclick="delRoom('${d.id}')">Löschen</button>` : ''}
-                    </div>`;
-                list.appendChild(div);
+                box.innerHTML += `<div class="room-btn ${activeRoomId===d.id?'active':''}" onclick="switchRoom('${d.id}','${r.name}')">👥 ${r.name}</div>`;
             });
         });
     }
 
     window.createRoom = async () => {
-        const n = prompt("Raum-Name:");
-        if(n) await addDoc(collection(db,"teams"), {name:n, members:[myID], owner:auth.currentUser.uid});
+        const n = prompt("Name des Raums:");
+        if(n) await addDoc(collection(db, "teams"), { name:n, members:[myID], owner:auth.currentUser.uid });
     };
 
-    window.invite = async (id) => {
-        const target = prompt("ID der Person:");
-        if(target) await updateDoc(doc(db,"teams",id), {members:arrayUnion(target.trim())});
+    window.switchRoom = (id, name) => {
+        activeRoomId = id;
+        document.getElementById('room-title').innerText = name;
+        
+        // Buttons nur zeigen, wenn nicht Hauptraum
+        const tools = document.getElementById('room-tools');
+        if(id === 'Hauptraum') tools.style.display = 'none';
+        else tools.style.display = 'flex';
+
+        loadChat();
+        loadRooms(); // Highlight aktualisieren
     };
 
-    window.delRoom = async (id) => {
-        if(confirm("Raum löschen?")) await deleteDoc(doc(db, "teams", id));
+    // --- RAUM EINSTELLUNGEN ---
+    window.addPerson = async () => {
+        const id = prompt("ID der Person hinzufügen:");
+        if(id) await updateDoc(doc(db,"teams",activeRoomId), {members: arrayUnion(id.trim())});
     };
 
+    window.kickPerson = async () => {
+        const id = prompt("ID der Person entfernen:");
+        if(id) await updateDoc(doc(db,"teams",activeRoomId), {members: arrayRemove(id.trim())});
+    };
+
+    window.deleteRoom = async () => {
+        const d = await getDoc(doc(db, "teams", activeRoomId));
+        if(d.exists() && d.data().owner === auth.currentUser.uid) {
+            if(confirm("Raum wirklich löschen?")) {
+                await deleteDoc(doc(db, "teams", activeRoomId));
+                switchRoom('Hauptraum', '📢 Hauptraum');
+            }
+        } else {
+            alert("Nur der Ersteller kann den Raum löschen!");
+        }
+    };
+
+    // --- CHAT ---
     function loadChat() {
-        if(unsub) unsub();
-        unsub = onSnapshot(query(collection(db,"messages"), where("room","==",activeRoom), orderBy("timestamp","asc")), snap => {
-            const box = document.getElementById('messages');
+        if(unsubChat) unsubChat();
+        const q = query(collection(db,"messages"), where("room","==",activeRoomId), orderBy("timestamp","asc"));
+        unsubChat = onSnapshot(q, snap => {
+            const box = document.getElementById('msg-container');
             box.innerHTML = "";
             snap.forEach(ds => {
                 const m = ds.data();
                 const div = document.createElement('div');
-                div.style = `padding:10px; border-radius:10px; max-width:70%; ${m.uid===auth.currentUser.uid?'align-self:flex-end; background:#3b82f6;':'background:#334155;'}`;
-                div.innerHTML = `<small style="display:block; font-size:9px; opacity:0.5">${m.user}</small>${m.text}`;
+                div.className = `msg ${m.uid===auth.currentUser.uid?'sent':'recv'}`;
+                div.innerHTML = `<div style="font-size:10px; opacity:0.7">${m.user}</div>${m.text}`;
                 box.appendChild(div);
             });
             box.scrollTop = box.scrollHeight;
@@ -194,11 +234,63 @@
     window.sendMsg = async () => {
         const i = document.getElementById('msgInput');
         if(!i.value.trim()) return;
-        await addDoc(collection(db,"messages"), {text:i.value, user:auth.currentUser.email.split('@')[0], uid:auth.currentUser.uid, room:activeRoom, timestamp:serverTimestamp()});
+        await addDoc(collection(db,"messages"), {
+            text: i.value, user: auth.currentUser.email.split('@')[0], 
+            uid: auth.currentUser.uid, room: activeRoomId, timestamp: serverTimestamp()
+        });
         i.value = "";
     };
-
     document.getElementById('msgInput').onkeypress = e => e.key==='Enter' && sendMsg();
+
+    // --- GRUPPEN VIDEO CALL ---
+    function initPeer(id) {
+        peer = new Peer(id);
+        peer.on('call', async call => {
+            const stream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+            call.answer(stream);
+            addVideo(call, stream);
+        });
+    }
+
+    window.groupCall = async () => {
+        if(activeRoomId === 'Hauptraum') return alert("Keine Anrufe im Hauptraum.");
+        
+        // 1. Hole alle Mitglieder des Raums
+        const roomDoc = await getDoc(doc(db, "teams", activeRoomId));
+        const members = roomDoc.data().members;
+        
+        // 2. Eigenen Stream holen
+        const myStream = await navigator.mediaDevices.getUserMedia({video:true, audio:true});
+        
+        // 3. Jeden im Raum anrufen (außer sich selbst)
+        let count = 0;
+        members.forEach(memberID => {
+            if(memberID !== myID) {
+                const call = peer.call(memberID, myStream);
+                addVideo(call, myStream);
+                count++;
+            }
+        });
+        
+        if(count > 0) alert(`Rufe ${count} Personen an...`);
+        else alert("Niemand sonst im Raum.");
+    };
+
+    function addVideo(call, localStream) {
+        const container = document.getElementById('video-grid');
+        
+        // Remote Video erstellen
+        const v = document.createElement('video');
+        v.autoplay = true;
+        
+        call.on('stream', remoteStream => {
+            v.srcObject = remoteStream;
+            container.appendChild(v);
+        });
+
+        // Auflegen beim Klicken
+        v.onclick = () => { v.remove(); call.close(); };
+    }
 </script>
 </body>
 </html>
