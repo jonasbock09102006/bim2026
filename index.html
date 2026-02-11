@@ -2,98 +2,112 @@
 <html lang="de">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIM 2026 - Manager Fixed</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>BIM 2026 - REPAIR MODE</title>
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background: #0f172a; color: #f1f5f9; 
-            height: 100vh; width: 100vw;
-            display: flex; /* Flexbox für stabile Trennung */
-            overflow: hidden;
+        /* CSS RESET */
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+        html, body { height: 100%; width: 100%; overflow: hidden; background: #000; color: #fff; font-family: sans-serif; }
+
+        /* GRID LAYOUT - Verhindert Überlappung komplett */
+        .app-wrapper {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            height: 100vh;
+            width: 100vw;
         }
 
         /* SIDEBAR */
-        .sidebar { 
-            width: 300px; min-width: 300px;
-            background: #111827; border-right: 2px solid #334155; 
-            display: flex; flex-direction: column; z-index: 100;
+        .sidebar {
+            background: #111;
+            border-right: 2px solid #333;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            z-index: 10;
         }
 
-        .auth-area { padding: 20px; background: #1f2937; border-bottom: 1px solid #334155; }
-        .input-field { width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 6px; border: 1px solid #444; background: #000; color: #fff; }
-
-        .room-list { flex: 1; padding: 15px; overflow-y: auto; }
+        .p-4 { padding: 15px; }
+        .auth-box { background: #222; border-bottom: 1px solid #333; }
+        input { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 5px; border: 1px solid #444; background: #000; color: #fff; font-size: 14px; }
+        
         .room-card { 
-            background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 12px; 
-            cursor: pointer; position: relative; border: 2px solid transparent;
+            background: #252525; padding: 15px; margin-bottom: 10px; border-radius: 8px; 
+            cursor: pointer; border: 2px solid transparent;
         }
         .room-card.active { border-color: #3b82f6; background: #1e3a8a; }
-        
-        /* Buttons in der Sidebar explizit abgrenzen */
-        .controls { display: flex; gap: 8px; margin-top: 10px; }
-        .btn-s { padding: 6px 10px; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .btn { padding: 8px 12px; border: none; border-radius: 4px; color: #fff; cursor: pointer; font-weight: bold; margin-top: 5px; }
 
-        /* MAIN CHAT */
-        .chat-main { 
-            flex: 1; display: flex; flex-direction: column; 
-            background: #0b0f1a; position: relative;
+        /* CHAT BEREICH */
+        .chat-area {
+            display: flex;
+            flex-direction: column;
+            background: #0b0b0b;
+            position: relative;
         }
 
-        #chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-
-        /* EINGABEBEREICH UNTEN */
-        .input-bar { 
-            padding: 20px; background: #111827; border-top: 1px solid #334155;
-            display: flex; gap: 10px; align-items: center;
-        }
-        #msgInput { 
-            flex: 1; padding: 14px 20px; border-radius: 30px; 
-            border: 1px solid #334155; background: #000; color: #fff; font-size: 16px;
+        #chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
         }
 
-        .msg { max-width: 75%; padding: 12px; border-radius: 15px; margin-bottom: 5px; line-height: 1.4; }
-        .sent { align-self: flex-end; background: #3b82f6; border-bottom-right-radius: 2px; }
-        .received { align-self: flex-start; background: #334155; border-bottom-left-radius: 2px; }
+        .input-footer {
+            padding: 15px;
+            background: #111;
+            border-top: 2px solid #333;
+            display: flex;
+            gap: 10px;
+        }
 
-        .tool { font-size: 10px; color: #aaa; cursor: pointer; margin-right: 10px; text-decoration: underline; }
+        #msgInput { flex: 1; margin-bottom: 0; border-radius: 20px; padding-left: 20px; }
+
+        /* MESSAGES */
+        .m { max-width: 80%; padding: 10px 15px; border-radius: 15px; font-size: 15px; line-height: 1.4; }
+        .sent { align-self: flex-end; background: #3b82f6; }
+        .recv { align-self: flex-start; background: #333; }
+        .edit-tools { font-size: 10px; margin-top: 5px; opacity: 0.5; cursor: pointer; }
     </style>
 </head>
 <body>
 
-    <div class="sidebar">
-        <div class="auth-area">
-            <div id="login-form">
-                <input type="email" id="email" class="input-field" placeholder="E-Mail">
-                <input type="password" id="password" class="input-field" placeholder="Passwort">
-                <button onclick="handleAuth()" style="width:100%; padding:10px; background:#22c55e; border:none; color:white; border-radius:6px; cursor:pointer;">Login</button>
+    <div class="app-wrapper">
+        <div class="sidebar">
+            <div class="auth-box p-4">
+                <div id="login-ui">
+                    <input type="email" id="email" placeholder="E-Mail">
+                    <input type="password" id="password" placeholder="Passwort">
+                    <button class="btn" style="background: #22c55e; width: 100%;" onclick="doAuth()">Login</button>
+                </div>
+                <div id="user-ui" style="display:none">
+                    <div id="u-mail" style="font-size: 12px; color: #3b82f6; font-weight: bold;"></div>
+                    <div style="font-size: 11px;">ID: <b id="u-id" style="color:#22c55e"></b></div>
+                    <button class="btn" style="background: #444; width: 100%; font-size: 11px;" onclick="doLogout()">Logout</button>
+                </div>
             </div>
-            <div id="user-ui" style="display:none">
-                <div id="u-mail" style="font-weight:bold; font-size:13px; color:#3b82f6"></div>
-                <div style="font-size:11px">Deine ID: <b id="u-id" style="color:#22c55e"></b></div>
-                <button onclick="handleLogout()" style="margin-top:8px; width:100%; background:#444; color:white; border:none; padding:5px; border-radius:4px; font-size:10px; cursor:pointer;">Abmelden</button>
+            
+            <div class="p-4">
+                <button class="btn" style="background: #3b82f6; width: 100%; margin-bottom: 20px;" onclick="addRoom()">+ Neuer Raum</button>
+                <div id="room-list"></div>
             </div>
         </div>
-        <div class="room-list">
-            <button onclick="createRoom()" style="width:100%; padding:10px; background:#3b82f6; border:none; color:white; border-radius:8px; margin-bottom:15px; cursor:pointer; font-weight:bold;">+ Neuer Chatraum</button>
-            <div id="rooms-box"></div>
-        </div>
-    </div>
 
-    <div class="chat-main">
-        <div id="chat-messages"></div>
-        <div class="input-bar">
-            <button onclick="startCall()" style="width:45px; height:45px; border-radius:50%; border:none; background:#4b5563; color:white; cursor:pointer;">📞</button>
-            <input type="text" id="msgInput" placeholder="Schreibe eine Nachricht...">
-            <button onclick="sendMsg()" style="width:45px; height:45px; border-radius:50%; border:none; background:#3b82f6; color:white; cursor:pointer;">➤</button>
+        <div class="chat-area">
+            <div id="chat-messages"></div>
+            <div class="input-footer">
+                <input type="text" id="msgInput" placeholder="Nachricht...">
+                <button class="btn" style="background: #3b82f6; border-radius: 50%; width: 45px; height: 45px;" onclick="send()">➤</button>
+            </div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, doc, updateDoc, arrayUnion, deleteDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, query, orderBy, onSnapshot, serverTimestamp, where, doc, updateDoc, arrayUnion, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB9Mw9ljgqeJztFtBEM2H7-c6k7XGy8zAw",
@@ -107,20 +121,20 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        let activeRoom = "Hauptraum", unsubChat, myID;
+        let activeRoom = "Hauptraum", myID, unsub;
 
-        // AUTH
-        window.handleAuth = async () => {
+        window.doAuth = async () => {
             const e = document.getElementById('email').value;
             const p = document.getElementById('password').value;
             try { await signInWithEmailAndPassword(auth, e, p); } 
-            catch { await createUserWithEmailAndPassword(auth, e, p).catch(a => alert(a.message)); }
+            catch { await createUserWithEmailAndPassword(auth, e, p).catch(err => alert(err.message)); }
         };
-        window.handleLogout = () => signOut(auth).then(() => location.reload());
+
+        window.doLogout = () => signOut(auth).then(() => location.reload());
 
         onAuthStateChanged(auth, u => {
             if(u) {
-                document.getElementById('login-form').style.display='none';
+                document.getElementById('login-ui').style.display='none';
                 document.getElementById('user-ui').style.display='block';
                 document.getElementById('u-mail').innerText = u.email;
                 myID = u.uid.substring(0,5);
@@ -129,108 +143,80 @@
             }
         });
 
-        // ROOMS
         function loadRooms() {
-            const q = query(collection(db, "teams"), where("members", "array-contains", myID));
-            onSnapshot(q, snap => {
-                const b = document.getElementById('rooms-box');
-                b.innerHTML = `<div class="room-card ${activeRoom==='Hauptraum'?'active':''}" onclick="switchRoom('Hauptraum')"><b>📢 Hauptraum</b></div>`;
+            onSnapshot(query(collection(db, "teams"), where("members", "array-contains", myID)), snap => {
+                const box = document.getElementById('room-list');
+                box.innerHTML = `<div class="room-card ${activeRoom==='Hauptraum'?'active':''}" onclick="switchRoom('Hauptraum')">📢 Hauptraum</div>`;
                 snap.forEach(d => {
                     const r = d.data();
-                    const isOwner = r.owner === auth.currentUser.uid;
                     const div = document.createElement('div');
                     div.className = `room-card ${activeRoom===d.id?'active':''}`;
-                    div.onclick = () => switchRoom(d.id);
                     div.innerHTML = `
-                        <b>👥 ${r.name}</b>
-                        <div class="controls">
-                            <button class="btn-s" style="background:#22c55e" onclick="addM(event,'${d.id}')">ID +</button>
-                            ${isOwner ? `<button class="btn-s" style="background:#ef4444" onclick="delR(event,'${d.id}')">Löschen</button>` : ''}
-                        </div>`;
-                    b.appendChild(div);
+                        <div onclick="switchRoom('${d.id}')"><b>👥 ${r.name}</b></div>
+                        <button class="btn" style="background:#22c55e; font-size:10px" onclick="invite(event,'${d.id}')">ID +</button>
+                        ${r.owner===auth.currentUser.uid ? `<button class="btn" style="background:#ef4444; font-size:10px" onclick="delRoom(event,'${d.id}')">Löschen</button>` : ''}
+                    `;
+                    box.appendChild(div);
                 });
             });
         }
 
-        window.createRoom = async () => {
-            const n = prompt("Name des Raums:");
-            if(n) await addDoc(collection(db,"teams"), {name:n, members:[myID], owner:auth.currentUser.uid, createdAt:serverTimestamp()});
+        window.addRoom = async () => {
+            const n = prompt("Raum Name:");
+            if(n) await addDoc(collection(db,"teams"), {name:n, members:[myID], owner:auth.currentUser.uid});
         };
 
-        window.addM = async (e,id) => {
-            e.stopPropagation(); // WICHTIG: Verhindert Raumwechsel beim Klicken
-            const target = prompt("5-stellige ID der Person eingeben:");
-            if(target) {
-                await updateDoc(doc(db,"teams",id), {members:arrayUnion(target.trim())});
-                alert("Person hinzugefügt!");
-            }
-        };
-
-        window.delR = async (e,id) => {
+        window.invite = async (e, id) => {
             e.stopPropagation();
-            if(confirm("Raum wirklich löschen?")) {
-                await deleteDoc(doc(db,"teams",id));
-                switchRoom('Hauptraum');
-            }
+            const target = prompt("ID der Person:");
+            if(target) await updateDoc(doc(db,"teams",id), {members:arrayUnion(target.trim())});
         };
 
-        // CHAT
+        window.delRoom = async (e, id) => {
+            e.stopPropagation();
+            if(confirm("Raum löschen?")) { await deleteDoc(doc(db, "teams", id)); switchRoom('Hauptraum'); }
+        };
+
         window.switchRoom = (id) => {
             activeRoom = id;
-            loadChat(id);
-            // UI Update für Active State
-            const cards = document.querySelectorAll('.room-card');
-            cards.forEach(c => c.classList.remove('active'));
-        };
+            loadChat();
+        }
 
-        function loadChat(rid) {
-            if(unsubChat) unsubChat();
-            const q = query(collection(db,"messages"), where("room","==",rid), orderBy("timestamp","asc"));
-            unsubChat = onSnapshot(q, snap => {
+        function loadChat() {
+            if(unsub) unsub();
+            unsub = onSnapshot(query(collection(db,"messages"), where("room","==",activeRoom), orderBy("timestamp","asc")), snap => {
                 const box = document.getElementById('chat-messages');
                 box.innerHTML = "";
-                snap.forEach(dDoc => {
-                    const d = dDoc.data();
-                    const isMe = d.uid === auth.currentUser.uid;
+                snap.forEach(docSnap => {
+                    const m = docSnap.data();
+                    const isMe = m.uid === auth.currentUser.uid;
                     const div = document.createElement('div');
-                    div.className = `msg ${isMe?'sent':'received'}`;
+                    div.className = `m ${isMe?'sent':'recv'}`;
                     div.innerHTML = `
-                        <small style="display:block; font-size:10px; opacity:0.6">${d.user}</small>
-                        ${d.text}
-                        ${isMe ? `<div style="margin-top:5px">
-                            <span class="tool" onclick="editM('${dDoc.id}','${d.text}')">Ändern</span>
-                            <span class="tool" onclick="deleteDoc(doc(db,'messages','${dDoc.id}'))">X</span>
-                        </div>` : ''}`;
+                        <div style="font-size:9px; opacity:0.5">${m.user}</div>
+                        ${m.text}
+                        ${isMe ? `<div class="edit-tools" onclick="editMsg('${docSnap.id}','${m.text}')">Bearbeiten | Löschen</div>` : ''}
+                    `;
                     box.appendChild(div);
                 });
                 box.scrollTop = box.scrollHeight;
             });
         }
 
-        window.sendMsg = async () => {
+        window.send = async () => {
             const i = document.getElementById('msgInput');
             if(!i.value.trim()) return;
-            await addDoc(collection(db,"messages"), {
-                text: i.value, 
-                user: auth.currentUser.email.split('@')[0], 
-                uid: auth.currentUser.uid, 
-                room: activeRoom, 
-                timestamp: serverTimestamp()
-            });
+            await addDoc(collection(db,"messages"), {text:i.value, user:auth.currentUser.email.split('@')[0], uid:auth.currentUser.uid, room:activeRoom, timestamp:serverTimestamp()});
             i.value = "";
         };
 
-        window.editM = async (id, old) => {
-            const n = prompt("Nachricht bearbeiten:", old);
-            if(n && n!==old) await updateDoc(doc(db,"messages",id), {text:n});
+        window.editMsg = async (id, old) => {
+            const n = prompt("Neu (leer zum Löschen):", old);
+            if(n === "") await deleteDoc(doc(db,"messages",id));
+            else if(n && n !== old) await updateDoc(doc(db,"messages",id), {text:n});
         };
 
-        window.startCall = () => {
-            const id = prompt("ID des Partners:");
-            if(id) alert("Anruf an ID " + id + " wird gestartet...");
-        };
-
-        document.getElementById('msgInput').onkeypress = e => e.key==='Enter' && sendMsg();
+        document.getElementById('msgInput').onkeypress = e => e.key==='Enter' && send();
     </script>
 </body>
 </html>
