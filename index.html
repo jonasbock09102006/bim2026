@@ -3,73 +3,61 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BIM 2026 - Final Fix</title>
+    <title>BIM 2026 - Manager Fixed</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        :root { --sb-width: 300px; --primary: #3b82f6; --danger: #ef4444; --success: #22c55e; }
-        
         body { 
             font-family: 'Segoe UI', sans-serif; 
             background: #0f172a; color: #f1f5f9; 
             height: 100vh; width: 100vw;
-            display: grid;
-            grid-template-columns: var(--sb-width) 1fr; /* Absolute Trennung */
+            display: flex; /* Flexbox für stabile Trennung */
             overflow: hidden;
         }
 
-        /* LINKS: SIDEBAR */
+        /* SIDEBAR */
         .sidebar { 
-            background: #111827; 
-            border-right: 2px solid #334155; 
-            display: flex; flex-direction: column;
-            height: 100vh;
+            width: 300px; min-width: 300px;
+            background: #111827; border-right: 2px solid #334155; 
+            display: flex; flex-direction: column; z-index: 100;
         }
 
-        .auth-area { padding: 20px; border-bottom: 1px solid #334155; background: #1f2937; }
+        .auth-area { padding: 20px; background: #1f2937; border-bottom: 1px solid #334155; }
         .input-field { width: 100%; padding: 10px; margin-bottom: 8px; border-radius: 6px; border: 1px solid #444; background: #000; color: #fff; }
-        
+
         .room-list { flex: 1; padding: 15px; overflow-y: auto; }
-        .room-btn { 
-            background: #1e293b; padding: 12px; border-radius: 10px; margin-bottom: 10px; 
-            cursor: pointer; border: 2px solid transparent; transition: 0.2s;
-            display: flex; flex-direction: column; gap: 8px;
+        .room-card { 
+            background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 12px; 
+            cursor: pointer; position: relative; border: 2px solid transparent;
         }
-        .room-btn:hover { background: #334155; }
-        .room-btn.active { border-color: var(--primary); background: #1e3a8a; }
-
-        /* RECHTS: CHAT */
-        .chat-area { 
-            display: grid;
-            grid-template-rows: 1fr auto; /* Oben Nachrichten, unten Input */
-            height: 100vh;
-            background: #0b0f1a;
-        }
-
-        #chat-messages { 
-            padding: 20px; overflow-y: auto; 
-            display: flex; flex-direction: column; gap: 12px;
-        }
-
-        /* BUBBLES */
-        .msg { max-width: 70%; padding: 12px; border-radius: 15px; position: relative; }
-        .sent { align-self: flex-end; background: var(--primary); border-bottom-right-radius: 2px; }
-        .received { align-self: flex-start; background: #334155; border-bottom-left-radius: 2px; }
+        .room-card.active { border-color: #3b82f6; background: #1e3a8a; }
         
-        .msg-tools { display: flex; gap: 10px; margin-top: 5px; font-size: 11px; opacity: 0.8; }
-        .tool-link { cursor: pointer; text-decoration: underline; color: #fff; }
+        /* Buttons in der Sidebar explizit abgrenzen */
+        .controls { display: flex; gap: 8px; margin-top: 10px; }
+        .btn-s { padding: 6px 10px; border: none; border-radius: 4px; color: white; cursor: pointer; font-size: 11px; font-weight: bold; }
 
-        /* INPUT BAR */
-        .bottom-bar { 
+        /* MAIN CHAT */
+        .chat-main { 
+            flex: 1; display: flex; flex-direction: column; 
+            background: #0b0f1a; position: relative;
+        }
+
+        #chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+
+        /* EINGABEBEREICH UNTEN */
+        .input-bar { 
             padding: 20px; background: #111827; border-top: 1px solid #334155;
             display: flex; gap: 10px; align-items: center;
         }
-        #msgInput { flex: 1; padding: 12px 20px; border-radius: 25px; border: 1px solid #334155; background: #000; color: #fff; outline: none; }
+        #msgInput { 
+            flex: 1; padding: 14px 20px; border-radius: 30px; 
+            border: 1px solid #334155; background: #000; color: #fff; font-size: 16px;
+        }
 
-        /* ALLGEMEINE BUTTONS */
-        .btn { padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; color: white; font-weight: bold; }
-        .btn-blue { background: var(--primary); }
-        .btn-red { background: var(--danger); font-size: 10px; }
-        .btn-green { background: var(--success); font-size: 10px; }
+        .msg { max-width: 75%; padding: 12px; border-radius: 15px; margin-bottom: 5px; line-height: 1.4; }
+        .sent { align-self: flex-end; background: #3b82f6; border-bottom-right-radius: 2px; }
+        .received { align-self: flex-start; background: #334155; border-bottom-left-radius: 2px; }
+
+        .tool { font-size: 10px; color: #aaa; cursor: pointer; margin-right: 10px; text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -79,26 +67,26 @@
             <div id="login-form">
                 <input type="email" id="email" class="input-field" placeholder="E-Mail">
                 <input type="password" id="password" class="input-field" placeholder="Passwort">
-                <button onclick="handleAuth()" class="btn btn-blue" style="width:100%">Login</button>
+                <button onclick="handleAuth()" style="width:100%; padding:10px; background:#22c55e; border:none; color:white; border-radius:6px; cursor:pointer;">Login</button>
             </div>
             <div id="user-ui" style="display:none">
-                <div id="u-mail" style="font-weight:bold; font-size:12px"></div>
-                <div style="font-size:11px">ID: <b id="u-id" style="color:var(--success)"></b></div>
-                <button onclick="handleLogout()" class="btn" style="background:#444; width:100%; margin-top:5px; font-size:10px">Logout</button>
+                <div id="u-mail" style="font-weight:bold; font-size:13px; color:#3b82f6"></div>
+                <div style="font-size:11px">Deine ID: <b id="u-id" style="color:#22c55e"></b></div>
+                <button onclick="handleLogout()" style="margin-top:8px; width:100%; background:#444; color:white; border:none; padding:5px; border-radius:4px; font-size:10px; cursor:pointer;">Abmelden</button>
             </div>
         </div>
         <div class="room-list">
-            <button onclick="createRoom()" class="btn btn-blue" style="width:100%; margin-bottom:15px">+ Neuer Raum</button>
+            <button onclick="createRoom()" style="width:100%; padding:10px; background:#3b82f6; border:none; color:white; border-radius:8px; margin-bottom:15px; cursor:pointer; font-weight:bold;">+ Neuer Chatraum</button>
             <div id="rooms-box"></div>
         </div>
     </div>
 
-    <div class="chat-area">
+    <div class="chat-main">
         <div id="chat-messages"></div>
-        <div class="bottom-bar">
-            <button class="btn btn-blue" style="border-radius:50%; width:45px; height:45px" onclick="alert('Partner-ID eingeben bei makeCall()')">📞</button>
-            <input type="text" id="msgInput" placeholder="Nachricht...">
-            <button class="btn btn-blue" style="border-radius:50%; width:45px; height:45px" onclick="sendMsg()">➤</button>
+        <div class="input-bar">
+            <button onclick="startCall()" style="width:45px; height:45px; border-radius:50%; border:none; background:#4b5563; color:white; cursor:pointer;">📞</button>
+            <input type="text" id="msgInput" placeholder="Schreibe eine Nachricht...">
+            <button onclick="sendMsg()" style="width:45px; height:45px; border-radius:50%; border:none; background:#3b82f6; color:white; cursor:pointer;">➤</button>
         </div>
     </div>
 
@@ -146,17 +134,18 @@
             const q = query(collection(db, "teams"), where("members", "array-contains", myID));
             onSnapshot(q, snap => {
                 const b = document.getElementById('rooms-box');
-                b.innerHTML = `<div class="room-btn ${activeRoom==='Hauptraum'?'active':''}" onclick="switchRoom('Hauptraum')">📢 Hauptraum</div>`;
+                b.innerHTML = `<div class="room-card ${activeRoom==='Hauptraum'?'active':''}" onclick="switchRoom('Hauptraum')"><b>📢 Hauptraum</b></div>`;
                 snap.forEach(d => {
                     const r = d.data();
                     const isOwner = r.owner === auth.currentUser.uid;
                     const div = document.createElement('div');
-                    div.className = `room-btn ${activeRoom===d.id?'active':''}`;
+                    div.className = `room-card ${activeRoom===d.id?'active':''}`;
+                    div.onclick = () => switchRoom(d.id);
                     div.innerHTML = `
-                        <div onclick="switchRoom('${d.id}')"><b>👥 ${r.name}</b></div>
-                        <div style="display:flex; gap:5px">
-                            <button class="btn btn-green" onclick="addM(event,'${d.id}')">ID+</button>
-                            ${isOwner ? `<button class="btn btn-red" onclick="delR(event,'${d.id}')">Löschen</button>` : ''}
+                        <b>👥 ${r.name}</b>
+                        <div class="controls">
+                            <button class="btn-s" style="background:#22c55e" onclick="addM(event,'${d.id}')">ID +</button>
+                            ${isOwner ? `<button class="btn-s" style="background:#ef4444" onclick="delR(event,'${d.id}')">Löschen</button>` : ''}
                         </div>`;
                     b.appendChild(div);
                 });
@@ -164,31 +153,34 @@
         }
 
         window.createRoom = async () => {
-            const n = prompt("Name:");
+            const n = prompt("Name des Raums:");
             if(n) await addDoc(collection(db,"teams"), {name:n, members:[myID], owner:auth.currentUser.uid, createdAt:serverTimestamp()});
+        };
+
+        window.addM = async (e,id) => {
+            e.stopPropagation(); // WICHTIG: Verhindert Raumwechsel beim Klicken
+            const target = prompt("5-stellige ID der Person eingeben:");
+            if(target) {
+                await updateDoc(doc(db,"teams",id), {members:arrayUnion(target.trim())});
+                alert("Person hinzugefügt!");
+            }
         };
 
         window.delR = async (e,id) => {
             e.stopPropagation();
-            if(confirm("Raum löschen?")) {
-                const m = await getDocs(query(collection(db,"messages"), where("room","==",id)));
-                m.forEach(async docRef => await deleteDoc(doc(db,"messages",docRef.id)));
+            if(confirm("Raum wirklich löschen?")) {
                 await deleteDoc(doc(db,"teams",id));
                 switchRoom('Hauptraum');
             }
-        };
-
-        window.addM = async (e,id) => {
-            e.stopPropagation();
-            const target = prompt("ID:");
-            if(target) await updateDoc(doc(db,"teams",id), {members:arrayUnion(target.trim())});
         };
 
         // CHAT
         window.switchRoom = (id) => {
             activeRoom = id;
             loadChat(id);
-            loadRooms(); // Refresh UI
+            // UI Update für Active State
+            const cards = document.querySelectorAll('.room-card');
+            cards.forEach(c => c.classList.remove('active'));
         };
 
         function loadChat(rid) {
@@ -203,11 +195,11 @@
                     const div = document.createElement('div');
                     div.className = `msg ${isMe?'sent':'received'}`;
                     div.innerHTML = `
-                        <small style="font-size:9px; opacity:0.7">${d.user}</small>
-                        <div>${d.text}</div>
-                        ${isMe ? `<div class="msg-tools">
-                            <span class="tool-link" onclick="editM('${dDoc.id}','${d.text}')">Edit</span>
-                            <span class="tool-link" onclick="deleteDoc(doc(db,'messages','${dDoc.id}'))">Löschen</span>
+                        <small style="display:block; font-size:10px; opacity:0.6">${d.user}</small>
+                        ${d.text}
+                        ${isMe ? `<div style="margin-top:5px">
+                            <span class="tool" onclick="editM('${dDoc.id}','${d.text}')">Ändern</span>
+                            <span class="tool" onclick="deleteDoc(doc(db,'messages','${dDoc.id}'))">X</span>
                         </div>` : ''}`;
                     box.appendChild(div);
                 });
@@ -218,13 +210,24 @@
         window.sendMsg = async () => {
             const i = document.getElementById('msgInput');
             if(!i.value.trim()) return;
-            await addDoc(collection(db,"messages"), {text:i.value, user:auth.currentUser.email.split('@')[0], uid:auth.currentUser.uid, room:activeRoom, timestamp:serverTimestamp()});
+            await addDoc(collection(db,"messages"), {
+                text: i.value, 
+                user: auth.currentUser.email.split('@')[0], 
+                uid: auth.currentUser.uid, 
+                room: activeRoom, 
+                timestamp: serverTimestamp()
+            });
             i.value = "";
         };
 
         window.editM = async (id, old) => {
-            const n = prompt("Ändern:", old);
+            const n = prompt("Nachricht bearbeiten:", old);
             if(n && n!==old) await updateDoc(doc(db,"messages",id), {text:n});
+        };
+
+        window.startCall = () => {
+            const id = prompt("ID des Partners:");
+            if(id) alert("Anruf an ID " + id + " wird gestartet...");
         };
 
         document.getElementById('msgInput').onkeypress = e => e.key==='Enter' && sendMsg();
